@@ -1,12 +1,19 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['admin']);
 
 // Handle Deletion
-if (isset($_GET['delete'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        header("Location: jobs.php?error=Invalid request token");
+        exit;
+    }
+
+    $delete_id = (int) $_POST['delete_id'];
     $stmt = $pdo->prepare("DELETE FROM jobs WHERE id = ?");
-    $stmt->execute([$_GET['delete']]);
+    $stmt->execute([$delete_id]);
     header("Location: jobs.php?success=Job listing removed");
     exit;
 }
@@ -43,6 +50,11 @@ $jobs = $stmt->fetchAll();
                     <i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($_GET['success']); ?>
                 </div>
             <?php endif; ?>
+            <?php if (isset($_GET['error'])): ?>
+                <div class="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i> <?php echo htmlspecialchars($_GET['error']); ?>
+                </div>
+            <?php endif; ?>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <?php foreach ($jobs as $job): ?>
@@ -59,9 +71,13 @@ $jobs = $stmt->fetchAll();
                     <div class="pt-6 border-t border-gray-50 flex items-center justify-between">
                         <span class="text-indigo-600 font-bold text-sm">₹ <?php echo htmlspecialchars($job['salary'] ?: 'N/A'); ?></span>
                         <div class="flex space-x-2">
-                             <button onclick="confirmDelete(<?php echo $job['id']; ?>)" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
-                                 <i class="fas fa-trash-alt text-xs"></i>
-                             </button>
+                             <form method="POST" onsubmit="return confirm('Delete this job listing? This action cannot be undone.');">
+                                 <input type="hidden" name="delete_id" value="<?php echo (int)$job['id']; ?>">
+                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
+                                 <button type="submit" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
+                                     <i class="fas fa-trash-alt text-xs"></i>
+                                 </button>
+                             </form>
                              <button class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all">
                                  <i class="fas fa-eye text-xs"></i>
                              </button>
@@ -73,14 +89,6 @@ $jobs = $stmt->fetchAll();
         </div>
     </main>
 </div>
-
-<script>
-function confirmDelete(id) {
-    if(confirm('Delete this job listing? This action cannot be undone.')) {
-        window.location.href = `jobs.php?delete=${id}`;
-    }
-}
-</script>
 
 </body>
 </html>

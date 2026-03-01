@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employee']);
 
 $searchTerm = $_GET['q'] ?? '';
@@ -138,6 +139,8 @@ $jobs = $stmt->fetchAll();
 </div>
 
 <script>
+const csrfToken = <?php echo json_encode(csrf_token()); ?>;
+
 async function applyJob(jobId, btn) {
     const originalContent = btn.innerHTML;
     btn.disabled = true;
@@ -146,7 +149,10 @@ async function applyJob(jobId, btn) {
     try {
         const response = await fetch('../includes/apply_job.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
             body: JSON.stringify({ job_id: jobId })
         });
         const result = await response.json();

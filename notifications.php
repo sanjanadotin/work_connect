@@ -10,6 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
+if ($role === 'admin') {
+    header("Location: admin/dashboard.php");
+    exit();
+}
 
 // Mark all as read when opening this page
 $pdo->prepare("UPDATE notifications SET is_read = TRUE WHERE user_id = ?")->execute([$user_id]);
@@ -19,7 +23,6 @@ $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY cr
 $stmt->execute([$user_id]);
 $notifications = $stmt->fetchAll();
 
-$sidebar_path = ($role === 'employer') ? 'includes/employer_sidebar.php' : 'includes/employee_sidebar.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,7 +39,6 @@ $sidebar_path = ($role === 'employer') ? 'includes/employer_sidebar.php' : 'incl
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden">
     <?php 
-    // Adjust sidebar path for root file
     if ($role === 'employer') include 'includes/employer_sidebar.php';
     else include 'includes/employee_sidebar.php';
     ?>

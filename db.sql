@@ -24,6 +24,24 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `contact_forms`
+--
+
+CREATE TABLE `contact_forms` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(190) NOT NULL,
+  `city` varchar(150) DEFAULT NULL,
+  `message` text NOT NULL,
+  `source_page` enum('home','contact') NOT NULL DEFAULT 'contact',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `employee_profiles`
 --
 
@@ -31,7 +49,8 @@ CREATE TABLE `employee_profiles` (
   `user_id` int(11) NOT NULL,
   `full_name` varchar(255) DEFAULT NULL,
   `skills` text DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL
+  `phone` varchar(20) DEFAULT NULL,
+  `bio` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -200,6 +219,13 @@ ALTER TABLE `employee_profiles`
   ADD PRIMARY KEY (`user_id`);
 
 --
+-- Indexes for table `contact_forms`
+--
+ALTER TABLE `contact_forms`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `created_at` (`created_at`);
+
+--
 -- Indexes for table `employer_profiles`
 --
 ALTER TABLE `employer_profiles`
@@ -260,6 +286,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `jobs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `contact_forms`
+--
+ALTER TABLE `contact_forms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `job_applications`

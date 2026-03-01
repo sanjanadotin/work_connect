@@ -1,12 +1,18 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['admin']);
 
 // Handle Deletion
-if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    if ($id != $_SESSION['user_id']) { // Don't delete yourself
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        header("Location: users.php?error=Invalid request token");
+        exit;
+    }
+
+    $id = (int) $_POST['delete_id'];
+    if ($id !== (int) $_SESSION['user_id']) { // Don't delete yourself
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$id]);
         header("Location: users.php?success=User deleted");
@@ -63,6 +69,11 @@ $users = $stmt->fetchAll();
                     <i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($_GET['success']); ?>
                 </div>
             <?php endif; ?>
+            <?php if (isset($_GET['error'])): ?>
+                <div class="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-bold flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i> <?php echo htmlspecialchars($_GET['error']); ?>
+                </div>
+            <?php endif; ?>
 
             <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -99,9 +110,13 @@ $users = $stmt->fetchAll();
                                     </td>
                                     <td class="p-6 text-right">
                                         <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                            <button onclick="confirmDelete(<?php echo $user['id']; ?>)" class="text-red-400 hover:text-red-600 p-2 transistion-colors">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
+                                            <form method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user? All their data will be permanently removed.');">
+                                                <input type="hidden" name="delete_id" value="<?php echo (int)$user['id']; ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
+                                                <button type="submit" class="text-red-400 hover:text-red-600 p-2 transition-colors">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
                                         <?php endif; ?>
                                         <button class="text-gray-400 hover:text-indigo-600 p-2"><i class="fas fa-edit"></i></button>
                                     </td>
@@ -114,14 +129,6 @@ $users = $stmt->fetchAll();
         </div>
     </main>
 </div>
-
-<script>
-function confirmDelete(id) {
-    if(confirm('Are you sure you want to delete this user? All their data will be permanently removed.')) {
-        window.location.href = `users.php?delete=${id}`;
-    }
-}
-</script>
 
 </body>
 </html>

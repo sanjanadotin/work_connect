@@ -1,9 +1,14 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employer']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        header("Location: post_job.php?error=Invalid request token.");
+        exit();
+    }
 
     $title = $_POST['title'] ?? '';
     $description = $_POST['description'] ?? '';
@@ -66,6 +71,7 @@ $error_msg = $_GET['error'] ?? '';
                 <?php endif; ?>
 
                 <form method="POST" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Job Title <span class="text-red-500">*</span></label>
                         <input type="text" name="title" required placeholder="e.g. Senior Carpenter, Site Supervisor"

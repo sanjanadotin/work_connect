@@ -1,6 +1,7 @@
 <?php
 // includes/handle_application.php
 require_once 'db_connect.php';
+require_once 'csrf.php';
 session_start();
 
 header('Content-Type: application/json');
@@ -9,9 +10,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'employer') {
     echo json_encode(['success' => false, 'error' => 'Not authorized']);
     exit();
 }
+if (!csrf_validate(csrf_token_from_request() ?? '')) {
+    echo json_encode(['success' => false, 'error' => 'Invalid request token']);
+    exit();
+}
 
 $data = json_decode(file_get_contents('php://input'), true);
-$application_id = $data['application_id'] ?? null;
+$application_id = isset($data['application_id']) && is_numeric($data['application_id']) ? (int) $data['application_id'] : null;
 $action = $data['action'] ?? null; // 'accept' or 'reject'
 
 if (!$application_id || !in_array($action, ['accept', 'reject'])) {
@@ -53,6 +58,6 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Application ' . $status]);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'Failed to process application']);
 }
 ?>

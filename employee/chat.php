@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employee']);
 
 $employer_id = $_GET['employer_id'] ?? null;
@@ -32,8 +33,9 @@ if ($employer_id) {
 
 // Fetch chat list for the sidebar
 $stmt = $pdo->prepare("SELECT DISTINCT users.id, users.username FROM users 
+    JOIN roles ON users.role_id = roles.id
     JOIN messages ON (users.id = messages.sender_id OR users.id = messages.receiver_id)
-    WHERE (messages.sender_id = ? OR messages.receiver_id = ?) AND users.id != ?");
+    WHERE (messages.sender_id = ? OR messages.receiver_id = ?) AND users.id != ? AND roles.role_name = 'employer'");
 $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
 $chat_list = $stmt->fetchAll();
 ?>
@@ -137,6 +139,8 @@ const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
 const currentUserId = <?php echo $_SESSION['user_id']; ?>;
 const otherUserId = <?php echo $employer_id ?: 'null'; ?>;
+const csrfToken = <?php echo json_encode(csrf_token()); ?>;
+let lastId = 0;
 
 if (otherUserId) {
     // 1. Initial Load of History
@@ -144,12 +148,14 @@ if (otherUserId) {
         .then(res => res.json())
         .then(data => {
             messagesDiv.innerHTML = '';
-            data.forEach(msg => appendMessage(msg));
+            data.forEach(msg => {
+                if (msg.id > lastId) lastId = msg.id;
+                appendMessage(msg);
+            });
             scrollToBottom();
         });
 
     // 2. Setup SSE for real-time updates
-    let lastId = 0;
     const evtSource = new EventSource(`../includes/chat_sse.php?other_id=${otherUserId}&last_id=${lastId}`);
     evtSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
@@ -159,6 +165,8 @@ if (otherUserId) {
             scrollToBottom();
         }
     };
+} else {
+    messagesDiv.innerHTML = '<div class="text-center py-10 opacity-60 text-sm">No conversation selected. Open a chat from accepted applications or recent messages.</div>';
 }
 
 // 3. Send Message
@@ -170,7 +178,10 @@ chatForm.onsubmit = async (e) => {
     messageInput.value = '';
     const res = await fetch('../includes/send_message.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+        },
         body: JSON.stringify({
             receiver_id: otherUserId,
             message: text

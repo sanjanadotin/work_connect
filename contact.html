@@ -10,6 +10,33 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
     integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-1: #0f172a;
+      --brand-2: #0ea5e9;
+      --ring: rgba(14, 165, 233, 0.25);
+    }
+    body { font-family: 'Manrope', sans-serif; background: radial-gradient(circle at 80% 0%, #dbeafe 0%, #f8fafc 45%, #f8fafc 100%); color: #0f172a; }
+    nav { background: rgba(255,255,255,0.86); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(15,23,42,0.08); }
+    .main-contact { padding-top: 8rem; }
+    .header-contact { font-weight: 800; letter-spacing: -0.8px; font-size: clamp(2rem, 4vw, 3rem); }
+    .contact-service, .contact-map iframe { border-radius: 18px; }
+    .contact-service { border: 1px solid rgba(15,23,42,0.08); background: linear-gradient(180deg,#fff,#f8fbff); box-shadow: 0 16px 35px rgba(15,23,42,0.09); }
+    .contact-service h1 { font-family: inherit; font-size: 2rem; color: #0f172a; }
+    .form-group input, .form-group textarea { border: 1px solid #cbd5e1; transition: .2s ease; font-family: inherit; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--brand-2); box-shadow: 0 0 0 4px var(--ring); outline: none; }
+    .submit-btn { width: 100%; border: none; border-radius: 12px; padding: 13px 16px; color: #fff; font-weight: 700; cursor: pointer; background: linear-gradient(120deg, var(--brand-1), var(--brand-2)); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .submit-btn:disabled { opacity: .8; cursor: not-allowed; }
+    .loader { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spin .7s linear infinite; display: none; }
+    .submit-btn.is-loading .loader { display: inline-block; }
+    .form-status { margin-bottom: 14px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; display: none; }
+    .form-status.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; display: block; }
+    .form-status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 
 <body>
@@ -43,8 +70,9 @@
       <div class="contact-box">
         <div class="contact-service">
           <h1>Contact Us</h1>
-          <form action="https://api.web3forms.com/submit" method="POST">
-            <input type="hidden" name="access_key" value="b354c801-0a6a-4626-8182-93c24fbf7fca">
+          <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+          <form action="form_submit.php" method="POST">
+            <input type="hidden" name="source_page" value="contact">
             <div class="form-group">
               <label for="name">Enter Your Name</label>
               <input type="text" id="name" name="name" class="hover-outline" required>
@@ -54,15 +82,18 @@
               <input type="email" id="email" name="email" class="hover-outline" required>
             </div>
             <div class="form-group">
-              <label for="name">Enter Your City</label>
-              <input type="text" id="name" name="name" class="hover-outline" required>
+              <label for="city">Enter Your City</label>
+              <input type="text" id="city" name="city" class="hover-outline" required>
             </div>
             <div class="form-group">
               <label for="message">Enter Message</label>
               <textarea id="message" name="message" rows="10" class="hover-outline" required></textarea>
             </div>
             <div class="btn">
-              <input type="submit" value="Send Message">
+              <button type="submit" class="submit-btn">
+                <span class="btn-text">Send Message</span>
+                <span class="loader" aria-hidden="true"></span>
+              </button>
             </div>
           </form>
         </div>
@@ -131,5 +162,36 @@
   </footer>
 
   <script src="./assets/js/javascript.js"></script>
+  <script>
+    (function () {
+      const statusEl = document.getElementById('form-status');
+      const form = document.querySelector('.contact-service form');
+      const btn = form ? form.querySelector('.submit-btn') : null;
+      const btnText = btn ? btn.querySelector('.btn-text') : null;
+      const params = new URLSearchParams(window.location.search);
+      const formStatus = params.get('form');
+
+      if (statusEl && formStatus) {
+        const map = {
+          success: { cls: 'success', msg: 'Message submitted successfully. We will contact you soon.' },
+          invalid_email: { cls: 'error', msg: 'Please enter a valid email address.' },
+          too_long: { cls: 'error', msg: 'Input is too long. Please shorten your message.' },
+          error: { cls: 'error', msg: 'Could not submit right now. Please try again.' }
+        };
+        const data = map[formStatus] || map.error;
+        statusEl.classList.add(data.cls);
+        statusEl.textContent = data.msg;
+        history.replaceState({}, '', window.location.pathname);
+      }
+
+      if (form && btn && btnText) {
+        form.addEventListener('submit', function () {
+          btn.classList.add('is-loading');
+          btn.disabled = true;
+          btnText.textContent = 'Submitting...';
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

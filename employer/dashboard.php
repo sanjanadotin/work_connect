@@ -23,12 +23,8 @@ $error_msg = $_GET['error'] ?? '';
 
 <div class="flex h-screen overflow-hidden">
 
-    <!-- Mobile Overlay -->
-    <div id="overlay" onclick="toggleSidebar()" 
-         class="fixed inset-0 bg-black bg-opacity-40 hidden z-30 md:hidden"></div>
-
     <!-- Sidebar -->
-     <php include 'sidebar.php'; ?>
+    <?php include '../includes/employer_sidebar.php'; ?>
 
 
     <!-- Main Content -->
@@ -56,6 +52,16 @@ $error_msg = $_GET['error'] ?? '';
 
         <!-- Content -->
         <div class="p-4 md:p-8 space-y-6">
+            <?php if (!empty($success_msg)): ?>
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+                    <?php echo htmlspecialchars($success_msg); ?>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($error_msg)): ?>
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                    <?php echo htmlspecialchars($error_msg); ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

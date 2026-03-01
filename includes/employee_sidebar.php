@@ -1,5 +1,7 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
+$is_employee_area = strpos(str_replace('\\', '/', $_SERVER['PHP_SELF']), '/employee/') !== false;
+$prefix = $is_employee_area ? '' : 'employee/';
 ?>
 <aside id="sidebar"
     class="fixed md:static z-40 inset-y-0 left-0 w-64 bg-indigo-900 text-white transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col">
@@ -15,32 +17,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
 
     <nav class="flex-grow mt-6 px-4 space-y-2">
-        <a href="dashboard.php"
+        <a href="<?php echo $prefix; ?>dashboard.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo $current_page == 'dashboard.php' ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-home"></i>
             <span>Dashboard</span>
         </a>
-        <a href="jobs.php"
+        <a href="<?php echo $prefix; ?>jobs.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo $current_page == 'jobs.php' ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-search"></i>
             <span>Find Jobs</span>
         </a>
-        <a href="applications.php"
+        <a href="<?php echo $prefix; ?>applications.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo $current_page == 'applications.php' ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-check-circle"></i>
             <span>My Applications</span>
         </a>
-        <a href="profile.php"
+        <a href="<?php echo $prefix; ?>profile.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo $current_page == 'profile.php' ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-user"></i>
             <span>My Profile</span>
         </a>
-        <a href="chat.php"
+        <a href="<?php echo $prefix; ?>chat.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo $current_page == 'chat.php' ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-comments"></i>
             <span>Messages</span>
         </a>
-        <a href="../notifications.php"
+        <a href="<?php echo $prefix; ?>../notifications.php"
            class="flex items-center justify-between p-3 rounded-xl hover:bg-indigo-800 transition-colors">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-bell"></i>
@@ -51,7 +53,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
 
     <div class="p-4 border-t border-indigo-800">
-        <a href="../logout.php"
+        <a href="<?php echo $prefix; ?>../logout.php"
            class="flex items-center space-x-3 p-3 rounded-xl hover:bg-red-600 transition-colors">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>

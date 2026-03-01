@@ -8,7 +8,11 @@ if (!isset($_SESSION['user_id']) || !isset($_GET['other_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$other_id = $_GET['other_id'];
+$other_id = is_numeric($_GET['other_id']) ? (int) $_GET['other_id'] : 0;
+if ($other_id <= 0) {
+    echo json_encode([]);
+    exit;
+}
 
 $stmt = $pdo->prepare("
     SELECT * FROM messages 

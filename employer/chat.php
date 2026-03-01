@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employer']);
 
 $employee_id = $_GET['employee_id'] ?? null;
@@ -79,6 +80,7 @@ if (!$employee) {
         const messageInput = document.getElementById('messageInput');
         const employeeId = <?php echo json_encode($employee_id); ?>;
         const currentUserId = <?php echo json_encode($_SESSION['user_id']); ?>;
+        const csrfToken = <?php echo json_encode(csrf_token()); ?>;
         let lastId = 0;
 
         // Initialize Chat
@@ -128,7 +130,7 @@ if (!$employee) {
             
             msgDiv.innerHTML = `
                 <div class="max-w-[80%] md:max-w-[60%] p-4 rounded-3xl shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'}">
-                    <p class="text-sm">${msg.message}</p>
+                    <p class="text-sm">${escapeHtml(msg.message)}</p>
                     <p class="text-[10px] mt-2 opacity-70 text-right">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                 </div>
             `;
@@ -147,7 +149,10 @@ if (!$employee) {
             try {
                 const response = await fetch('../includes/send_message.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
                     body: JSON.stringify({
                         receiver_id: employeeId,
                         message: message
@@ -165,6 +170,12 @@ if (!$employee) {
 
         loadHistory();
         startSSE();
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
     </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 // employer/applications.php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employer']);
 
 $stmt = $pdo->prepare("
@@ -96,6 +97,8 @@ $applications = $stmt->fetchAll();
     </main>
 
     <script>
+    const csrfToken = <?php echo json_encode(csrf_token()); ?>;
+
     async function handleApp(appId, action, btn) {
         if (!confirm(`Are you sure you want to ${action} this application?`)) return;
         
@@ -106,7 +109,10 @@ $applications = $stmt->fetchAll();
         try {
             const response = await fetch('../includes/handle_application.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                },
                 body: JSON.stringify({ application_id: appId, action: action })
             });
             const result = await response.json();

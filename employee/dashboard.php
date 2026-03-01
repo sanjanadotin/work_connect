@@ -90,7 +90,7 @@ $jobs = $stmt->fetchAll();
                                         <span><i class="fas fa-map-marker-alt mr-1"></i> <?php echo htmlspecialchars($job['location']); ?></span>
                                         <span><i class="fas fa-calendar-alt mr-1"></i> <?php echo date('M d', strtotime($job['created_at'])); ?></span>
                                     </div>
-                                    <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">Apply Now</button>
+                                    <a href="jobs.php" class="block text-center w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">Apply Now</a>
                                 </div>
                             </div>
                         <?php endforeach; ?>

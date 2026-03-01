@@ -12,8 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['email'] = $user['email'];
             $_SESSION['role'] = $user['role_name'];
 
             // Route based on role
@@ -28,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header("Location: employee/dashboard.php");
                     break;
                 default:
-                    header("Location: index.php");
+                    $_SESSION['error'] = "Invalid user role.";
+                    header("Location: login.php");
             }
             exit();
         } else {

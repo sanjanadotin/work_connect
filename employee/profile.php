@@ -1,36 +1,51 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employee']);
 
 $user_id = $_SESSION['user_id'];
 $message = '';
+$error_message = '';
 
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        $error_message = "Invalid request token.";
+    } else {
     $skills = $_POST['skills'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $bio = $_POST['bio'] ?? '';
 
-    // Check if profile exists
-    $stmt = $pdo->prepare("
-        SELECT u.username, u.email, ep.full_name, ep.skills, ep.phone
-        FROM users u
-        LEFT JOIN employee_profiles ep 
-            ON u.id = ep.user_id
-        WHERE u.id = ?
-    ");
-    $stmt->execute([$user_id]);
-    $profile = $stmt->fetch();
+    try {
+        // Correct existence check: query the profile table directly.
+        $stmt = $pdo->prepare("SELECT user_id FROM employee_profiles WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $exists = (bool) $stmt->fetchColumn();
 
-    if ($profile) {
-        $stmt = $pdo->prepare("UPDATE employee_profiles SET skills = ?, phone = ?, bio = ? WHERE user_id = ?");
-        $stmt->execute([$skills, $phone, $bio, $user_id]);
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO employee_profiles (user_id, skills, phone, bio) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$user_id, $skills, $phone, $bio]);
+        try {
+            if ($exists) {
+                $stmt = $pdo->prepare("UPDATE employee_profiles SET skills = ?, phone = ?, bio = ? WHERE user_id = ?");
+                $stmt->execute([$skills, $phone, $bio, $user_id]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO employee_profiles (user_id, skills, phone, bio) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$user_id, $skills, $phone, $bio]);
+            }
+        } catch (PDOException $e) {
+            // Fallback for older schemas where `bio` column may not exist.
+            if ($exists) {
+                $stmt = $pdo->prepare("UPDATE employee_profiles SET skills = ?, phone = ? WHERE user_id = ?");
+                $stmt->execute([$skills, $phone, $user_id]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO employee_profiles (user_id, skills, phone) VALUES (?, ?, ?)");
+                $stmt->execute([$user_id, $skills, $phone]);
+            }
+        }
+        $message = "Profile updated successfully!";
+    } catch (PDOException $e) {
+        $error_message = "Failed to update profile.";
     }
-    $message = "Profile updated successfully!";
+    }
 }
 
 // Fetch current profile
@@ -73,6 +88,12 @@ $profile = $stmt->fetch();
                     <?php echo $message; ?>
                 </div>
             <?php endif; ?>
+            <?php if ($error_message): ?>
+                <div class="bg-red-100 border border-red-200 text-red-700 px-6 py-4 rounded-2xl mb-6 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3"></i>
+                    <?php echo htmlspecialchars($error_message); ?>
+                </div>
+            <?php endif; ?>
 
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="bg-indigo-600 h-32 md:h-48 relative">
@@ -95,6 +116,7 @@ $profile = $stmt->fetch();
                     </div>
 
                     <form action="" method="POST" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Professional Skills</label>

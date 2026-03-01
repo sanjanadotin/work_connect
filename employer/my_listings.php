@@ -1,9 +1,15 @@
 <?php
 require_once '../includes/auth_middleware.php';
 require_once '../includes/db_connect.php';
+require_once '../includes/csrf.php';
 checkRole(['employer']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!csrf_validate($_POST['csrf_token'] ?? '')) {
+        header("Location: my_listings.php");
+        exit();
+    }
+
     $deleteId = (int) $_POST['delete_id'];
 
     $stmt = $pdo->prepare("DELETE FROM jobs WHERE id = ? AND employer_id = ?");
@@ -77,6 +83,7 @@ $jobs = $stmt->fetchAll();
                                             <button class="text-indigo-600 hover:text-indigo-900 font-semibold text-sm mr-4">Edit</button>
                                             <form method="POST" style="display:inline;">
                                                 <input type="hidden" name="delete_id" value="<?php echo $job['id']; ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
                                                 <button type="submit" class="text-red-500 hover:text-red-700 font-semibold text-sm"
                                                         onclick="return confirm('Are you sure you want to delete this job?');">
                                                     Delete

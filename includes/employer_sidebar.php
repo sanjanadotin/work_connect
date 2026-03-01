@@ -1,6 +1,8 @@
 <?php
 // includes/employer_sidebar.php
 $current_page = basename($_SERVER['PHP_SELF']);
+$is_employer_area = strpos(str_replace('\\', '/', $_SERVER['PHP_SELF']), '/employer/') !== false;
+$prefix = $is_employer_area ? '' : 'employer/';
 ?>
 <!-- Mobile Overlay -->
 <div id="overlay" onclick="toggleSidebar()" 
@@ -21,37 +23,37 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
 
     <nav class="flex-grow mt-6 px-4 space-y-2">
-        <a href="dashboard.php"
+        <a href="<?php echo $prefix; ?>dashboard.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo ($current_page == 'dashboard.php') ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-home"></i>
             <span>Dashboard</span>
         </a>
 
-        <a href="post_job.php"
+        <a href="<?php echo $prefix; ?>post_job.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo ($current_page == 'post_job.php') ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-plus-circle"></i>
             <span>Post a Job</span>
         </a>
 
-        <a href="my_listings.php"
+        <a href="<?php echo $prefix; ?>my_listings.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo ($current_page == 'my_listings.php') ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-briefcase"></i>
             <span>My Listings</span>
         </a>
 
-        <a href="applications.php"
+        <a href="<?php echo $prefix; ?>applications.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo ($current_page == 'applications.php') ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-file-invoice"></i>
             <span>Applications</span>
         </a>
 
-        <a href="workforce.php"
+        <a href="<?php echo $prefix; ?>workforce.php"
            class="flex items-center space-x-3 p-3 rounded-xl <?php echo ($current_page == 'workforce.php') ? 'bg-indigo-800' : 'hover:bg-indigo-800'; ?> transition-colors">
             <i class="fas fa-users"></i>
             <span>Workforce</span>
         </a>
 
-        <a href="../notifications.php"
+        <a href="<?php echo $prefix; ?>../notifications.php"
            class="flex items-center justify-between p-3 rounded-xl hover:bg-indigo-800 transition-colors">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-bell"></i>
@@ -62,7 +64,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
 
     <div class="p-4 border-t border-indigo-800">
-        <a href="../logout.php"
+        <a href="<?php echo $prefix; ?>../logout.php"
            class="flex items-center space-x-3 p-3 rounded-xl hover:bg-red-600 transition-colors">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
