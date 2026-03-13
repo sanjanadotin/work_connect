@@ -63,9 +63,9 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
                         <i class="fas fa-lock absolute left-4 top-4 text-gray-400"></i>
                         <input type="password" name="password" placeholder="Password" required class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
-                    <div class="flex justify-end">
+                    <!-- <div class="flex justify-end">
                         <a href="#" class="text-sm text-indigo-600 hover:underline">Forgot password?</a>
-                    </div>
+                    </div> -->
                     <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Login</button>
                     <p class="text-center text-gray-600 mt-6">Don't have an account? <a href="javascript:void(0)" onclick="toggleForm()" class="text-indigo-600 font-semibold hover:underline">Register</a></p>
                 </form>
